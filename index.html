@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="board"></div>
+
+    <div id="recommencer"><button id="recommencerBtn">Recommencer</button></div>
+
+    <div id="chrono">
+        <span id="minutes">00</span>:<span id="seconds">00</span>.<span id="millis">000</span>
+    </div>
+
+    <script>
+        function shuffleChildren(parent) {
+            let children = parent.children;
+            let i = children.length, k, temp;
+            while (--i > 0) {
+                k = Math.floor(Math.random() * (i + 1));
+                temp = children[k];
+                children[k] = children[i];
+                parent.appendChild(temp);
+            }
+        }
+
+        function partieReset(parent) {
+            parent.querySelectorAll(".box-clicked").forEach(function (validBox) {
+                validBox.classList.remove("box-clicked");
+                validBox.classList.remove("success");
+            });
+
+            shuffleChildren(parent);
+        }
+
+        function showReaction(type, clickedBox) {
+            clickedBox.classList.add(type);
+            if (type !== "success") {
+                setTimeout(function () {
+                    clickedBox.classList.remove(type);
+                }, 800);
+            }
+        }
+
+        let userInput = prompt("Combien de cases ? ");
+        let userNb = parseInt(userInput, 10);
+        let nb = 1;
+        let startTime = null;
+        let endTime;
+
+        const recommencerBtn = document.querySelector("#recommencerBtn");
+        const board = document.querySelector("#board");
+        const chrono = document.getElementById("chrono");
+
+        recommencerBtn.addEventListener("click", function () {
+            partieReset(board);
+            nb = 1;
+            startTime = null; // Réinitialisez la variable startTime
+            chrono.innerText = "00:00.000";
+        });
+
+        const box = document.createElement("div");
+        box.classList.add("box");
+
+        for (let i = 1; i <= userNb; i++) {
+            const newBox = box.cloneNode();
+            newBox.innerText = i;
+            board.appendChild(newBox);
+
+            newBox.addEventListener("click", function () {
+                if (nb === 1 && startTime === null) {
+                    startTime = new Date().getTime();
+                    updateChrono();
+                }
+
+                if (i === nb) {
+                    console.log("Boite n°" + i + ", click !");
+
+                    newBox.classList.add("box-clicked");
+                    shuffleChildren(board);
+
+                    if (nb === board.children.length) {
+                        endTime = new Date().getTime();
+                        board.querySelectorAll(".box").forEach(function (box) {
+                            showReaction("success", box);
+                        });
+
+                        const elapsedTime = endTime - startTime;
+                        const formattedTime = formatTime(elapsedTime);
+                        startTime = null
+                    }
+
+                    nb++;
+                } else if (i > nb) {
+                    showReaction("error", newBox);
+                    shuffleChildren(board);
+                } else {
+                    showReaction("notice", newBox);
+                }
+            });
+        }
+
+        shuffleChildren(board);
+
+        function updateChrono() {
+            const currentTime = new Date().getTime();
+            const elapsedTime = currentTime - startTime;
+            chrono.innerText = formatTime(elapsedTime);
+            setTimeout(updateChrono, 10);
+        }
+
+        function formatTime(milliseconds) {
+            const minutes = Math.floor(milliseconds / (60 * 1000));
+            const seconds = Math.floor((milliseconds % (60 * 1000)) / 1000);
+            const millis = milliseconds % 1000;
+            return (
+                padNumber(minutes, 2) +
+                ":" +
+                padNumber(seconds, 2) +
+                "." +
+                padNumber(millis, 3)
+            );
+        }
+
+        function padNumber(number, width) {
+            const numString = number.toString();
+            const padding = "0".repeat(width - numString.length);
+            return padding + numString;
+        }
+    </script>
+</body>
+</html>
