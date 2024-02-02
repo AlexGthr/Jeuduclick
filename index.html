@@ -7,15 +7,21 @@
     <title>Document</title>
 </head>
 <body>
+
+    <!-- Div qui contient les blocs à cliquer -->
     <div id="board"></div>
 
+    <!-- Bouton recommencer pour reset le jeu -->
     <div id="recommencer"><button id="recommencerBtn">Recommencer</button></div>
 
+    <!-- Chronometre -->
     <div id="chrono">
         <span id="minutes">00</span>:<span id="seconds">00</span>.<span id="millis">000</span>
     </div>
 
     <script>
+
+        // Fonction pour mélanger les divs
         function shuffleChildren(parent) {
             let children = parent.children;
             let i = children.length, k, temp;
@@ -27,6 +33,7 @@
             }
         }
 
+        // Fonnction pour reset la partie en supprimant les class CSS, et en re-mélangeant les divs
         function partieReset(parent) {
             parent.querySelectorAll(".box-clicked").forEach(function (validBox) {
                 validBox.classList.remove("box-clicked");
@@ -36,6 +43,8 @@
             shuffleChildren(parent);
         }
 
+
+        // Fonction qui ajoute les class Succes/error/notice au div une fois le clic effectué
         function showReaction(type, clickedBox) {
             clickedBox.classList.add(type);
             if (type !== "success") {
@@ -45,60 +54,67 @@
             }
         }
 
-        let userInput = prompt("Combien de cases ? ");
-        let userNb = parseInt(userInput, 10);
+        let userInput = prompt("Combien de cases ? "); // Demande à l'utilisateur un nombre de case
+        let userNb = parseInt(userInput, 10); // On transfert la réponse dans en int
         let nb = 1;
-        let startTime = null;
+        let startTime = 0; // Chronometre instancié à 0
         let endTime;
 
         const recommencerBtn = document.querySelector("#recommencerBtn");
         const board = document.querySelector("#board");
         const chrono = document.getElementById("chrono");
 
+        // Event au click qui recommence la partie en cliquant sur le bouton "recommencer"
         recommencerBtn.addEventListener("click", function () {
             partieReset(board);
             nb = 1;
-            startTime = null; // Réinitialisez la variable startTime
+            startTime = 0; // Réinitialisez la variable startTime
             chrono.innerText = "00:00.000";
         });
 
         const box = document.createElement("div");
         box.classList.add("box");
 
+        // Boucle du jeu, qui crée les divs et gèrent les clicks
         for (let i = 1; i <= userNb; i++) {
-            const newBox = box.cloneNode();
-            newBox.innerText = i;
-            board.appendChild(newBox);
+            const newBox = box.cloneNode(); // Clone des divs
+            newBox.innerText = i; // Numéro écrit dans le bloc
+            board.appendChild(newBox); // Et on l'ajoute à l'enfant board
 
+            // L'event au click 
             newBox.addEventListener("click", function () {
-                if (nb === 1 && startTime === null) {
+                if (nb === 1 && startTime === 0) { // Démarrage du timer
                     startTime = new Date().getTime();
                     updateChrono();
                 }
 
-                if (i === nb) {
+                if (i === nb) { // Si le clic est correct
                     console.log("Boite n°" + i + ", click !");
 
                     newBox.classList.add("box-clicked");
                     shuffleChildren(board);
 
-                    if (nb === board.children.length) {
-                        endTime = new Date().getTime();
+                    if (nb === board.children.length) { // Si tout est fini alors :
+                        endTime = new Date().getTime(); // Fin du chrono
                         board.querySelectorAll(".box").forEach(function (box) {
                             showReaction("success", box);
                         });
 
                         const elapsedTime = endTime - startTime;
                         const formattedTime = formatTime(elapsedTime);
-                        startTime = null
+                        startTime = 0
                     }
 
                     nb++;
-                } else if (i > nb) {
+                } else if (i > nb) { // Si l'utilisateur se trompe 
+
                     showReaction("error", newBox);
                     shuffleChildren(board);
-                } else {
+
+                } else { // Si l'utilisateur reclic sur une box
+
                     showReaction("notice", newBox);
+                    
                 }
             });
         }
